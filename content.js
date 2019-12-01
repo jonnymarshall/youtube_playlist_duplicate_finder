@@ -7,6 +7,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   const titleStringMatcher = /(^[^,]*)\s-\s([^,]*)/
   const allSongs = []
 
+  // Create a song object from artist and songTitle
   class Song {
     constructor(artist, songTitle) {
       this.artist = artist;
@@ -18,11 +19,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     }
   }
 
-
+  // Take the title string from the song and puts it in an array
   videoTitlesHTMLElements.forEach(function(videoTitlesHTMLElement){
     videoTitleStripped.push(videoTitlesHTMLElement.title);
   });
 
+  // Create an array of objects for each song if the string passes the match test
   videoTitleStripped.forEach(function(videoTitlesHTMLElement){
     if (titleStringMatcher.test(videoTitlesHTMLElement)){
       const artist = videoTitlesHTMLElement.match(titleStringMatcher)[1];
@@ -32,7 +34,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     }
   });
 
-  // Sort by name
+  // Sort songs by artist name in alphabetical order
   allSongs.sort(function(a, b) {
     var nameA = a.artist.toUpperCase(); // ignore upper and lowercase
     var nameB = b.artist.toUpperCase(); // ignore upper and lowercase
@@ -46,7 +48,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
   console.log(allSongs);
 
-  // Test for a match
+  // Test for a match of both artist and title
   function matchTest (artistOrTitleSongOne, artistOrTitleSongTwo) {
     let artistTest = (artistOrTitleSongOne.artist.toUpperCase() === artistOrTitleSongTwo.artist.toUpperCase()) ? true : false;
     let titleTest = (artistOrTitleSongOne.title.toUpperCase() === artistOrTitleSongTwo.title.toUpperCase()) ? true : false;
@@ -54,7 +56,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     return (artistTest && titleTest) ? true : false;
   }
 
-  // Iterate over all Song objects
+  // Find duplicate songs
   function dupeFinder(allSongs) {
     let count = 0;
     for (let i = 0; i < allSongs.length-1; i++) {
@@ -63,7 +65,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       if (allSongs[count].validInfoTest && allSongs[count+1].validInfoTest) {
         // Check to see if artist and song are identical
         if (matchTest(allSongs[count], allSongs[count+1])) {
-          // Reeturn any songs which are identified as a match
+          // Return any songs which are identified as a match
           console.log(`${allSongs[count].artist} - ${allSongs[count].title} matched! Here are the objects:`);
           console.log(allSongs[count]);
           console.log(allSongs[count+1]);
