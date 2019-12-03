@@ -29,8 +29,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     // Create an array of Song objects for each song in the playlist
     videoTitlesHTMLElements.forEach(function(videoTitlesHTMLElement){
       let song = new Song(videoTitlesHTMLElement);
-      videoTitlesHTMLElement.data-foo = song.uniqueId;
-      debugger
+      videoTitlesHTMLElement.parentElement.parentElement.parentElement.parentElement.dataset["uniqueId"] = song.uniqueId;
       allSongs.push(song);
     });
 
@@ -88,9 +87,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
     function findDuplicateHTMLElement (duplicate) {
       console.log("entered findDuplicateHTMLElement");
-      console.log(duplicate.uniqueId);
-      document.querySelectorAll(`a[data='${duplicate.uniqueId}']`);
-      debugger
+      // document.querySelectorAll(`a[data='${duplicate.uniqueId}']`);
+      let duplicateVideo = document.querySelectorAll(`[data-unique-id~="${duplicate.uniqueId}"]`);
+      return duplicateVideo;
     }
 
     function displayDupes (response) {
@@ -103,8 +102,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         duplicateHTMLElements.push(findDuplicateHTMLElement(duplicate));
       })
       duplicateHTMLElements.forEach(function(duplicate){
+        debugger;
         console.log(duplicate);
-        resultsDiv.appendChild(duplicate);
+        resultsDiv.appendChild(duplicate[0]);
       })
     }
     displayDupes();
