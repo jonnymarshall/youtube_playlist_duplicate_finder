@@ -3,41 +3,35 @@ console.log("content.js executed");
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   const playlistSection = document.getElementById("playlist")
   const videoTitlesHTMLElements = playlistSection.querySelectorAll("#video-title");
-  const videoTitleStripped = []
   const titleStringMatcher = /(^[^,]*)\s-\s([^,]*)/
   const allSongs = []
 
   // Create a song object from artist and songTitle
   class Song {
-    constructor(artist, songTitle) {
-      this.artist = artist;
-      this.title = songTitle;
+    constructor(htmlObject) {
+      this.title = htmlObject.title;
+      this.baseURI = htmlObject.baseURI;
     }
 
-    validInfoTest() {
-      return (this.artist && this.title) ? true : false;
-    }
+    // artist () {
+    //   return this.title.match(titleStringMatcher)[1];
+    // }
+
+    // song () {
+    //   return this.title.match(titleStringMatcher)[2];
+    // }
   }
 
-  // Take the title string from the song and puts it in an array
+  // Create an array of Song objects for each song in the playlist
   videoTitlesHTMLElements.forEach(function(videoTitlesHTMLElement){
-    videoTitleStripped.push(videoTitlesHTMLElement.title);
-  });
-
-  // Create an array of objects for each song if the string passes the match test
-  videoTitleStripped.forEach(function(videoTitlesHTMLElement){
-    if (titleStringMatcher.test(videoTitlesHTMLElement)){
-      const artist = videoTitlesHTMLElement.match(titleStringMatcher)[1];
-      const songTitle = videoTitlesHTMLElement.match(titleStringMatcher)[2];
-      let song = new Song(artist, songTitle);
+      let song = new Song(videoTitlesHTMLElement);
       allSongs.push(song);
-    }
   });
 
   // Sort songs by artist name in alphabetical order
   allSongs.sort(function(a, b) {
-    var nameA = a.artist.toUpperCase(); // ignore upper and lowercase
-    var nameB = b.artist.toUpperCase(); // ignore upper and lowercase
+    var nameA = a.title.toUpperCase(); // ignore upper and lowercase
+    var nameB = b.title.toUpperCase(); // ignore upper and lowercase
     if (nameA < nameB) {
       return -1;
     }
@@ -46,34 +40,32 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     }
   });
 
-  console.log(allSongs);
+  // console.log(allSongs);
 
   // Test for a match of both artist and title
-  function matchTest (artistOrTitleSongOne, artistOrTitleSongTwo) {
-    let artistTest = (artistOrTitleSongOne.artist.toUpperCase() === artistOrTitleSongTwo.artist.toUpperCase()) ? true : false;
-    let titleTest = (artistOrTitleSongOne.title.toUpperCase() === artistOrTitleSongTwo.title.toUpperCase()) ? true : false;
-    // console.log(`last detected sog was ${artistOrTitleSongOne.artist} - ${artistOrTitleSongOne.title}`);
-    return (artistTest && titleTest) ? true : false;
+  function matchTest (songOne, songTwo) {
+    return (songOne.title.toUpperCase() === songTwo.title.toUpperCase()) ? true : false;
   }
+
+  // Create an array for duplicate songs
+  let duplicates = []
 
   // Find duplicate songs
   function dupeFinder(allSongs) {
     let count = 0;
     for (let i = 0; i < allSongs.length-1; i++) {
-      console.log(`the count is ${count}`);
-      // Check to see if there is valid artist and song name for two tracks to be compared
-      if (allSongs[count].validInfoTest && allSongs[count+1].validInfoTest) {
-        // Check to see if artist and song are identical
-        if (matchTest(allSongs[count], allSongs[count+1])) {
-          // Return any songs which are identified as a match
-          console.log(`${allSongs[count].artist} - ${allSongs[count].title} matched! Here are the objects:`);
-          console.log(allSongs[count]);
-          console.log(allSongs[count+1]);
-          count++;
-        }
-        else {
-          count++;
-        }
+      // console.log(`the count is ${count}`);
+      // Check to see if artist and song are identical
+      if (matchTest(allSongs[count], allSongs[count+1])) {
+        // Return any songs which are identified as a match
+        console.log(`${allSongs[count].title} - ${allSongs[count+1].title} matched! Here are the objects:`);
+        console.log(allSongs[count]);
+        console.log(allSongs[count+1]);
+        const duplicateOne = document.querySelector(`[baseURI="${allSongs[count].baseURI} - ${allSongs[count+1].baseURI}"]`);
+        const duplicateTwo = document.querySelector(`[baseURI="${allSongs[count+1].baseURI} - ${allSongs[count+1].baseURI}"]`);
+        duplicates.push(allSongs[count]);
+        duplicates.push(allSongs[count]);
+        count++;
       }
       else {
         count++;
@@ -83,7 +75,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
   dupeFinder(allSongs);
 
-  sendResponse({count:videoTitleStripped.length});
+  console.log(duplicates);
+
+  sendResponse({count:duplicates.length/2});
 
 })
 
