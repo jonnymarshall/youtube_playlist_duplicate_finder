@@ -67,7 +67,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
           console.log(allSongs[count]);
           console.log(allSongs[count+1]);
           duplicates.push(allSongs[count]);
-          duplicates.push(allSongs[count]);
+          duplicates.push(allSongs[count+1]);
           count++;
         }
         else {
@@ -98,12 +98,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       const resultsDiv = document.createElement('div');
       pageManager.appendChild(resultsDiv);
       duplicateHTMLElements = []
+      debugger
       request.duplicates.forEach(function(duplicate){
         duplicateHTMLElements.push(findDuplicateHTMLElement(duplicate));
       })
       duplicateHTMLElements.forEach(function(duplicate){
-        debugger;
-        console.log(duplicate);
+        console.log(duplicate[0]);
         resultsDiv.appendChild(duplicate[0]);
       })
     }
