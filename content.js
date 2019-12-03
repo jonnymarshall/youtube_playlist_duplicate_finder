@@ -4,7 +4,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request === 'searchForDupes') {
     const playlistSection = document.getElementById("playlist")
     const videoTitlesHTMLElements = playlistSection.querySelectorAll("#video-title");
-    const titleStringMatcher = /(^[^,]*)\s-\s([^,]*)/
+    const uniqueIdStripper = /v=(\S+)&list/
     const allSongs = []
 
     console.log(`request is ${request}`);
@@ -14,7 +14,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     class Song {
       constructor(htmlObject) {
         this.title = htmlObject.title;
-        this.baseURI = htmlObject.baseURI;
+        this.uniqueId = htmlObject.parentElement.parentElement.parentElement.parentElement.href.match(uniqueIdStripper)[1];
       }
 
       // artist () {
@@ -28,8 +28,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
     // Create an array of Song objects for each song in the playlist
     videoTitlesHTMLElements.forEach(function(videoTitlesHTMLElement){
-        let song = new Song(videoTitlesHTMLElement);
-        allSongs.push(song);
+      let song = new Song(videoTitlesHTMLElement);
+      videoTitlesHTMLElement.data-foo = song.uniqueId;
+      debugger
+      allSongs.push(song);
     });
 
     // Sort songs by artist name in alphabetical order
@@ -85,9 +87,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.method === 'displayDupes') {
 
     function findDuplicateHTMLElement (duplicate) {
-      console.log(`entered findDuplicateHTMLElement, here's the object passed:`);
+      console.log("entered findDuplicateHTMLElement");
+      console.log(duplicate.uniqueId);
+      document.querySelectorAll(`a[data='${duplicate.uniqueId}']`);
       debugger
-      return document.querySelector(`[baseURI="${duplicate.baseURI}"]`);
     }
 
     function displayDupes (response) {
@@ -95,11 +98,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       const pageManager = document.getElementById("page-manager");
       const resultsDiv = document.createElement('div');
       pageManager.appendChild(resultsDiv);
-      DuplicateHTMLElements = []
+      duplicateHTMLElements = []
       request.duplicates.forEach(function(duplicate){
-        DuplicateHTMLElements.push(findDuplicateHTMLElement(duplicate));
+        duplicateHTMLElements.push(findDuplicateHTMLElement(duplicate));
       })
-      DuplicateHTMLElements.forEach(function(duplicate){
+      duplicateHTMLElements.forEach(function(duplicate){
         console.log(duplicate);
         resultsDiv.appendChild(duplicate);
       })
